@@ -5,7 +5,7 @@ from groq import Groq
 
 
 # Initialize Groq client
-client = Groq(api_key="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")
+client = Groq(api_key="enter the api key")
 
 def get_last_sender(chat_history: str) -> str:
     """
