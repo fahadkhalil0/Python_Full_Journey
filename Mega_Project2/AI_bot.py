@@ -5,9 +5,9 @@ from groq import Groq
 
 
 # Initialize Groq client
-client = Groq(api_key="enter the api key")
+client = Groq(api_key="Enter your API Key")
 
-def get_last_sender(chat_history: str) -> str:
+def get_last_sender(chatHistory : str) -> str:
     """
     Extracts the name of the last sender from WhatsApp chat history text.
     
@@ -19,7 +19,7 @@ def get_last_sender(chat_history: str) -> str:
     """
     try:
         # Split by lines and filter out empty lines
-        lines = [line.strip() for line in chat_history.strip().split('\n') if line.strip()]
+        lines = [line.strip() for line in chatHistory.strip().split('\n') if line.strip()]
         
         # Look for the last line that contains a timestamp and sender pattern
         for line in reversed(lines):
@@ -40,62 +40,85 @@ def get_last_sender(chat_history: str) -> str:
     except Exception as e:
         print("⚠️ Error while parsing:", e)
         return ""
-
-
+    
 # Step 1: Click on the WhatsApp icon
 pyautogui.click(868, 871)
 time.sleep(2)
 
-# Step 2: Drag to select text (chat history)
-pyautogui.moveTo(605, 187)
-pyautogui.dragTo(1548, 776, duration=1, button='left')
-time.sleep(0.5)
+while True:
 
-# Step 3: Copy (Ctrl+C)
-pyautogui.hotkey('ctrl', 'c')
-time.sleep(1)
-
-# Step 4: Get from clipboard
-chatHistory = pyperclip.paste()
-print("Copied chat history:", chatHistory)
-
-last_sender = get_last_sender(chatHistory)
-if last_sender and last_sender == "Self": 
-    # Agar last sender "Self" hai to reply karo
-    # AI response code yahan chalega
-    # Agar koi bhi valid sender mila hai to reply karo
-    # AI response code yahan chalega 
-    completion = client.chat.completions.create(
-        model="openai/gpt-oss-120b",
-        messages=[
-    {"role": "system", "content": "You are chatting like a normal Pakistani friend on WhatsApp. Keep replies short (1-2 lines), casual, and sometimes incomplete. Mix Roman Urdu and English naturally. Never repeat same words every time. Do not sound like a bot. Avoid long explanations. Keep it chill and natural"
-    "(just do only message dont give the refrence of sender or receiver with time)."},
-    {"role": "user", "content": chatHistory}
-    ],
-        temperature=0.6,   # balanced & natural
-        max_completion_tokens=150,  # short replies only
-        top_p=1,
-        stream=True,
-    )
-
-    response = ""
-    for chunk in completion:
-        if chunk.choices[0].delta.content:
-            response += chunk.choices[0].delta.content
-
-    print("\nNaruto Reply:\n", response)
-
-    # Step 5: Send AI response to WhatsApp
-    # Step 1: Click on WhatsApp text box
-    pyautogui.click(1257, 803)   # <- update with your textbox position
+    # Step 2: Drag to select text (chat history)
+    pyautogui.moveTo(605, 187)
+    pyautogui.dragTo(1548, 776, duration=1, button='left')
     time.sleep(0.5)
 
-    # Step 2: Copy response to clipboard
-    pyperclip.copy(response)
+    # Step 3: Copy (Ctrl+C)
+    pyautogui.hotkey('ctrl','c')
+    time.sleep(1)
 
-    # Step 3: Paste into WhatsApp
-    pyautogui.hotkey('ctrl', 'v')
-    time.sleep(0.3)
+    pyautogui.click(566, 195)
+    time.sleep(8)
 
-    # Step 4: Press Enter to send
-    pyautogui.press('enter')
+    # Step 4: Get from clipboard
+    chatHistory = pyperclip.paste()
+    print("Copied chat history:", chatHistory)
+
+    #Function to process the chat
+    def process_last_message(chatHistory: str, my_name = "Fahad Khalil"):
+        """
+        Processes the chat history to check if the last message is from a person other than you.
+        Args:
+            chat_history (str): The full WhatsApp chat history text.
+            my_name (str): Your name as it appears in the chat.
+        """
+        last_sender = get_last_sender(chatHistory)
+        
+        you = "Fahad Khalil"
+        if last_sender and last_sender != you:
+            print(f"The last message was from '{last_sender}'.")
+            print(f"Performing action because the sender is not {you}.")
+            completion = client.chat.completions.create(
+                model="openai/gpt-oss-120b",
+                messages=[
+                    {"role": "system", "content": "You are an AI assistant designed to respond in the persona of a Pakistani friend on WhatsApp. Your replies must be concise (1-2 lines), natural, casual, and politely and respectively. Maintain a natural blend of Roman Urdu and English. Avoid sounding like a bot. Do not use conversational fillers or lengthy explanations. Respond directly to the last message without referencing the sender, receiver, or timestamps."},
+                    {"role": "user", "content": chatHistory}
+                ],
+                temperature=0.6,   # balanced & natural
+                max_completion_tokens=150,   # short replies only
+                top_p=1,
+                stream=True,
+            )
+
+            response = ""
+            for chunk in completion:
+                if chunk.choices[0].delta.content:
+                    response += chunk.choices[0].delta.content
+
+            print("\nNaruto Reply:\n", response)
+
+            # Step 5: Send AI response to WhatsApp
+            # Step 1: Click on WhatsApp text box
+            pyautogui.click(1257, 803)   # <- update with your textbox position
+            time.sleep(0.5)
+
+            # Step 2: Copy response to clipboard
+            pyperclip.copy(response)
+
+            # Step 3: Paste into WhatsApp
+            pyautogui.hotkey('ctrl', 'v')
+            time.sleep(0.3)
+
+            # Step 4: Press Enter to send
+            pyautogui.press('enter')
+
+            # my_name_in_chat= "Fahad Khalil"
+
+        elif last_sender and last_sender == you:
+            print("The last message was from you. No action needed.")
+        else:
+            print("Could not determine the last sender. No action needed.")
+
+    # Call the function to process the chat history and respond if needed
+    process_last_message(chatHistory)
+
+        
