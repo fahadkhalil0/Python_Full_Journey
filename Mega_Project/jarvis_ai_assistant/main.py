@@ -4,12 +4,39 @@ import pyttsx3
 import musicLibrary
 import pygame
 
+from groq import Groq
+from openai import OpenAI
+
 
 engine = pyttsx3.init()
 
 def speak(text):
     engine.say(text)
     engine.runAndWait()
+
+# # Integrated the API key of Groq.
+def AIProcess(command):
+    client = Groq(api_key="")
+
+    completion = client.chat.completions.create(
+        model="openai/gpt-oss-120b",
+        messages=[
+            {"role": "system", "content": "You are an AI assistant designed to respond in the persona of a Pakistani friend on WhatsApp. Your replies must be concise (1-2 lines), natural, casual, and politely and respectively. Maintain a natural blend of Roman Urdu and English. Avoid sounding like a bot. Do not use conversational fillers or lengthy explanations. Respond directly to the last message without referencing the sender, receiver, or timestamps."},
+            {"role": "user", "content": command}
+        ],
+        temperature=0.6,
+        max_completion_tokens=150,
+        top_p=1,
+        stream=True,
+    )
+
+    response = ""
+    for chunk in completion:
+        if chunk.choices[0].delta.content:
+            response += chunk.choices[0].delta.content
+
+    print("\nNaruto Reply:\n", response)
+    return response # Return the generated response to be spoken
 
 def processCommand(command):
     command = command.lower()
@@ -36,7 +63,7 @@ def processCommand(command):
     else:
         # Pass the command to AIProcess and then speak the response
         try:
-            # output = AIProcess(command)
+            output = AIProcess(command)
             speak(output)
         except Exception as e:
             speak("I am not understanding the command!")
