@@ -3,6 +3,8 @@ import webbrowser
 import pyttsx3
 import musicLibrary
 import pygame
+from gtts import gTTS
+import requests
 
 from groq import Groq
 from openai import OpenAI
@@ -13,6 +15,22 @@ engine = pyttsx3.init()
 def speak(text):
     engine.say(text)
     engine.runAndWait()
+
+# ----------------------------------------------------------------------
+# ------You can use gtts for the better speech_recognition experience
+# ----------------------------------------------------------------------
+
+def speak(text):
+    
+    tts = gTTS(text)
+    tts.save('temp.mp3')
+    pygame.mixer.init()
+    pygame.mixer.music.load("temp.mp3")
+    pygame.mixer.music.play()
+
+    while pygame.mixer.music.get_busy():
+        pygame.time.Clock().tick(10)
+
 
 # # Integrated the API key of Groq.
 def AIProcess(command):
