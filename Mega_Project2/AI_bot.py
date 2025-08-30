@@ -5,7 +5,7 @@ from groq import Groq
 
 
 # Initialize Groq client
-client = Groq(api_key="Enter your API Key")
+client = Groq(api_key="")
 
 def get_last_sender(chatHistory : str) -> str:
     """
@@ -41,6 +41,18 @@ def get_last_sender(chatHistory : str) -> str:
         print("⚠️ Error while parsing:", e)
         return ""
     
+def send_reply(reply_text: str):
+    """Clicks on WhatsApp textbox, pastes the reply, and sends it."""
+    pyautogui.click(1257, 803)   # <- update apne textbox ke hisaab se
+    time.sleep(0.5)
+
+    pyperclip.copy(reply_text)
+    pyautogui.hotkey('ctrl', 'v')
+    time.sleep(0.3)
+    
+    pyautogui.press('enter')
+
+
 # Step 1: Click on the WhatsApp icon
 pyautogui.click(868, 871)
 time.sleep(2)
@@ -63,6 +75,16 @@ while True:
     chatHistory = pyperclip.paste()
     print("Copied chat history:", chatHistory)
 
+    keywords_replies = {
+        # Greetings
+        "Salam": "Wa Alaikum Salam 🤲",
+        "assalamualaikum": "Wa Alaikum Salam dost 🤝",
+        "hello": "Hello dost 👋",
+        "hi": "Hi yaar 😊",
+        "hey": "Hey buddy ✌️",
+    }
+
+
     #Function to process the chat
     def process_last_message(chatHistory: str, my_name = "Fahad Khalil"):
         """
@@ -77,6 +99,17 @@ while True:
         if last_sender and last_sender != you:
             print(f"The last message was from '{last_sender}'.")
             print(f"Performing action because the sender is not {you}.")
+
+            for keyword, reply in keywords_replies.items():
+                if keyword in last_sender.lower():
+                    print(f"Keyword '{keyword}' detected! Replying with: {reply}")
+                    send_reply(reply)
+                    return
+
+
+            # 2) AI-based reply
+            print("No keyword matched, using AI for reply...")
+
             completion = client.chat.completions.create(
                 model="openai/gpt-oss-120b",
                 messages=[
